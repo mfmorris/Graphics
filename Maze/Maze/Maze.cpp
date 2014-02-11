@@ -122,47 +122,87 @@ void drawMaze() {
 	for (int i = 0; i < mazeHeight; i++) {
 		for (int j = 0; j < mazeWidth; j++) {
 			if (maze[i][j].east) {
-				glBegin(GL_LINES);
-				GLfloat v[2];
+				glBegin(GL_POLYGON);
+				GLfloat v[3];
 				v[0] = j + 1;
 				v[1] = mazeHeight - i;
-				glVertex2fv(v);
+				v[2] = 0;
+				glVertex3fv(v);
 				v[0] = j + 1;
 				v[1] = mazeHeight - i - 1;
-				glVertex2fv(v);
+				v[2] = 0;
+				glVertex3fv(v);
+				v[0] = j + 1;
+				v[1] = mazeHeight - i - 1;
+				v[2] = 1;
+				glVertex3fv(v);
+				v[0] = j + 1;
+				v[1] = mazeHeight - i;
+				v[2] = 1;
+				glVertex3fv(v);
 				glEnd();
 			}
 			if (maze[i][j].north) {
-				glBegin(GL_LINES);
-				GLfloat v[2];
+				glBegin(GL_POLYGON);
+				GLfloat v[3];
 				v[0] = j;
 				v[1] = mazeHeight - i;
-				glVertex2fv(v);
+				v[2] = 0;
+				glVertex3fv(v);
 				v[0] = j + 1;
 				v[1] = mazeHeight - i;
-				glVertex2fv(v);
+				v[2] = 0;
+				glVertex3fv(v);
+				v[0] = j + 1;
+				v[1] = mazeHeight - i;
+				v[2] = 1;
+				glVertex3fv(v);
+				v[0] = j;
+				v[1] = mazeHeight - i;
+				v[2] = 1;
+				glVertex3fv(v);
 				glEnd();
 			}
 			if (maze[i][j].south) {
-				glBegin(GL_LINES);
-				GLfloat v[2];
+				glBegin(GL_POLYGON);
+				GLfloat v[3];
 				v[0] = j;
 				v[1] = mazeHeight - i - 1;
-				glVertex2fv(v);
+				v[2] = 0;
+				glVertex3fv(v);
 				v[0] = j + 1;
 				v[1] = mazeHeight - i - 1;
-				glVertex2fv(v);
+				v[2] = 0;
+				glVertex3fv(v);
+				v[0] = j + 1;
+				v[1] = mazeHeight - i - 1;
+				v[2] = 0;
+				glVertex3fv(v);
+				v[0] = j;
+				v[1] = mazeHeight - i - 1;
+				v[2] = 0;
+				glVertex3fv(v);
 				glEnd();
 			}
 			if (maze[i][j].west) {
-				glBegin(GL_LINES);
-				GLfloat v[2];
+				glBegin(GL_POLYGON);
+				GLfloat v[3];
 				v[0] = j;
 				v[1] = mazeHeight - i;
-				glVertex2fv(v);
+				v[2] = 0;
+				glVertex3fv(v);
 				v[0] = j;
 				v[1] = mazeHeight - i - 1;
-				glVertex2fv(v);
+				v[2] = 0;
+				glVertex3fv(v);
+				v[0] = j;
+				v[1] = mazeHeight - i - 1;
+				v[2] = 0;
+				glVertex3fv(v);
+				v[0] = j;
+				v[1] = mazeHeight - i;
+				v[2] = 0;
+				glVertex3fv(v);
 				glEnd();
 			}
 		}
@@ -172,22 +212,25 @@ void drawMaze() {
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glColor3f(0.0, 0.0, 0.0);
-	glPolygonMode(GL_FRONT, GL_LINE);
 	drawMaze();
 
 	glFlush();
 }
 
 void myinit() {
+	int size = fmax(mazeWidth, mazeHeight);
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	int size = fmax(mazeWidth, mazeHeight);
-	gluOrtho2D(-1.0, size + 1.0, -1.0, size + 1.0);
+	gluPerspective(50.0, 1.0, -1.0, 1.0);
+
 	glMatrixMode(GL_MODELVIEW);
+	gluLookAt(mazeWidth / 2, mazeHeight / 2, size * 1.5,	// Eye
+				mazeWidth / 2, mazeHeight / 2, 0.0,	// Center
+				0.0, 1.0, 0.0);	// Up
 	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glColor3f(0.0, 0.0, 1.0);
-	glPolygonMode(GL_FRONT, GL_LINE);
+	glColor3f(0.0, 0.0, 0.0);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 int main(int argc, char **argv) {
