@@ -18,6 +18,11 @@ struct cell maze[1000][1000];
 int mazeHeight;
 int mazeWidth;
 
+static float centerX, centerY;
+static float eyeX, eyeY, eyeZ;
+static int locX, locY;
+static int facing;
+
 /*
  * Generates a random maze using a recursive backtracking algorithm.
  */
@@ -122,7 +127,7 @@ void drawMaze() {
 	for (int i = 0; i < mazeHeight; i++) {
 		for (int j = 0; j < mazeWidth; j++) {
 			if (maze[i][j].east) {
-				glColor3f(1.0, 0.0, 0.0);
+				glColor3f(0.580, 0.0, 0.827);
 				glBegin(GL_POLYGON);
 				GLfloat v[3];
 				v[0] = j + 1;
@@ -141,11 +146,12 @@ void drawMaze() {
 				v[1] = mazeHeight - i;
 				v[2] = 1;
 				glVertex3fv(v);
+				//glNormal3f(-1.0, 0.0, 0.0);
 				glEnd();
 			}
 
 			if (maze[i][j].north) {
-				glColor3f(0.0, 1.0, 0.0);
+				glColor3f(0.545, 0.109, 0.348);
 				glBegin(GL_POLYGON);
 				GLfloat v[3];
 				v[0] = j;
@@ -164,34 +170,36 @@ void drawMaze() {
 				v[1] = mazeHeight - i;
 				v[2] = 1;
 				glVertex3fv(v);
+				//glNormal3f(0.0, -1.0, 0.0);
 				glEnd();
 			}
 
 			if (maze[i][j].south) {
-				glColor3f(0.0, 0.0, 1.0);
+				glColor3f(0.545, 0.109, 0.348);
 				glBegin(GL_POLYGON);
 				GLfloat v[3];
 				v[0] = j;
 				v[1] = mazeHeight - i - 1;
 				v[2] = 0;
 				glVertex3fv(v);
-				v[0] = j + 1;
-				v[1] = mazeHeight - i - 1;
-				v[2] = 0;
-				glVertex3fv(v);
-				v[0] = j + 1;
-				v[1] = mazeHeight - i - 1;
-				v[2] = 1;
-				glVertex3fv(v);
 				v[0] = j;
 				v[1] = mazeHeight - i - 1;
 				v[2] = 1;
 				glVertex3fv(v);
+				v[0] = j + 1;
+				v[1] = mazeHeight - i - 1;
+				v[2] = 1;
+				glVertex3fv(v);
+				v[0] = j + 1;
+				v[1] = mazeHeight - i - 1;
+				v[2] = 0;
+				glVertex3fv(v);
+				//glNormal3f(0.0, 1.0, 0.0);
 				glEnd();
 			}
 
 			if (maze[i][j].west) {
-				glColor3f(1.0, 1.0, 0.0);
+				glColor3f(0.502, 0.0, 0.502);
 				glBegin(GL_POLYGON);
 				GLfloat v[3];
 				v[0] = j;
@@ -199,17 +207,18 @@ void drawMaze() {
 				v[2] = 0;
 				glVertex3fv(v);
 				v[0] = j;
-				v[1] = mazeHeight - i - 1;
-				v[2] = 0;
-				glVertex3fv(v);
-				v[0] = j;
-				v[1] = mazeHeight - i - 1;
-				v[2] = 1;
-				glVertex3fv(v);
-				v[0] = j;
 				v[1] = mazeHeight - i;
 				v[2] = 1;
 				glVertex3fv(v);
+				v[0] = j;
+				v[1] = mazeHeight - i - 1;
+				v[2] = 1;
+				glVertex3fv(v);
+				v[0] = j;
+				v[1] = mazeHeight - i - 1;
+				v[2] = 0;
+				glVertex3fv(v);
+				//glNormal3f(1.0, 0.0, 0.0);
 				glEnd();
 			}
 		}
@@ -224,21 +233,328 @@ void display(void) {
 	glFlush();
 }
 
+void forward() {
+	switch (facing) {
+	case 0: //NORTH
+		if (!maze[locY][locX].north) {
+			printf("move north\n");
+
+			for (float i = 0.0001; i <= 1; i += 0.0001) {
+				eyeY += 0.0001;
+				centerX = eyeX;
+				centerY = eyeY + 0.25;
+				glMatrixMode(GL_MODELVIEW);
+				glLoadIdentity();
+				gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+					centerX, centerY, 0.5,	// Center
+					0.0, 0.0, 1.0);	// Up
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				drawMaze();
+				glFlush();
+			}
+
+			locY--;
+		}
+		break;
+	case 1: //EAST
+		if (!maze[locY][locX].east) {
+			printf("move east\n");
+
+			for (float i = 0.0001; i <= 1; i += 0.0001) {
+				eyeX += 0.0001;
+				centerX = eyeX + 0.25;
+				centerY = eyeY;
+				glMatrixMode(GL_MODELVIEW);
+				glLoadIdentity();
+				gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+					centerX, centerY, 0.5,	// Center
+					0.0, 0.0, 1.0);	// Up
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				drawMaze();
+				glFlush();
+			}
+			
+			locX++;
+		}
+		break;
+	case 2: //SOUTH
+		if (!maze[locY][locX].south) {
+			printf("move south\n");
+
+			for (float i = 0.0001; i <= 1; i += 0.0001) {
+				eyeY -= 0.0001;
+				centerX = eyeX;
+				centerY = eyeY - 0.25;
+				glMatrixMode(GL_MODELVIEW);
+				glLoadIdentity();
+				gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+					centerX, centerY, 0.5,	// Center
+					0.0, 0.0, 1.0);	// Up
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				drawMaze();
+				glFlush();
+			}
+
+			locY++;
+		}
+		break;
+	case 3: //WEST
+		if (!maze[locY][locX].west) {
+			printf("move west\n");
+
+			for (float i = 0.0001; i <= 1; i += 0.0001) {
+				eyeX -= 0.0001;
+				centerX = eyeX - 0.25;
+				centerY = eyeY;
+				glMatrixMode(GL_MODELVIEW);
+				glLoadIdentity();
+				gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+					centerX, centerY, 0.5,	// Center
+					0.0, 0.0, 1.0);	// Up
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				drawMaze();
+				glFlush();
+			}
+
+			locX--;
+		}
+		break;
+	}
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+		centerX, centerY, 0.5,	// Center
+		0.0, 0.0, 1.0);	// Up
+	glutPostRedisplay();
+}
+
+void turnLeft() {
+	switch (facing) {
+	case 0:
+		printf("facing west\n");
+		facing = 3;
+		//centerX = eyeX - 0.25;
+		//centerY = eyeY;
+
+		for (float i = 0.0001; i <= 0.25; i += 0.0001) {
+			centerX -= 0.0001;
+			centerY -= 0.0001;
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+				centerX, centerY, 0.5,	// Center
+				0.0, 0.0, 1.0);	// Up
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			drawMaze();
+			glFlush();
+		}
+
+		break;
+	case 1:
+		printf("facing north\n");
+		facing = 0;
+		//centerX = eyeX;
+		//centerY = eyeY + 0.25;
+
+		for (float i = 0.0001; i <= 0.25; i += 0.0001) {
+			centerX -= 0.0001;
+			centerY += 0.0001;
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+				centerX, centerY, 0.5,	// Center
+				0.0, 0.0, 1.0);	// Up
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			drawMaze();
+			glFlush();
+		}
+
+		break;
+	case 2:
+		printf("facing east\n");
+		facing = 1;
+		//centerX = eyeX + 0.25;
+		//centerY = eyeY;
+
+		for (float i = 0.0001; i <= 0.25; i += 0.0001) {
+			centerX += 0.0001;
+			centerY += 0.0001;
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+				centerX, centerY, 0.5,	// Center
+				0.0, 0.0, 1.0);	// Up
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			drawMaze();
+			glFlush();
+		}
+
+		break;
+	case 3:
+		printf("facing south\n");
+		facing = 2;
+		//centerX = eyeX;
+		//centerY = eyeY - 0.25;
+
+		for (float i = 0.0001; i <= 0.25; i += 0.0001) {
+			centerX += 0.0001;
+			centerY -= 0.0001;
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+				centerX, centerY, 0.5,	// Center
+				0.0, 0.0, 1.0);	// Up
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			drawMaze();
+			glFlush();
+		}
+
+		break;
+	}
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+		centerX, centerY, 0.5,	// Center
+		0.0, 0.0, 1.0);	// Up
+	glutPostRedisplay();
+}
+
+void turnRight() {
+	switch (facing) {
+	case 0:
+		printf("facing east\n");
+		facing = 1;
+		//centerX = eyeX + 0.25;
+		//centerY = eyeY;
+
+		for (float i = 0.0001; i <= 0.25; i += 0.0001) {
+			centerX += 0.0001;
+			centerY -= 0.0001;
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+				centerX, centerY, 0.5,	// Center
+				0.0, 0.0, 1.0);	// Up
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			drawMaze();
+			glFlush();
+		}
+
+		break;
+	case 1:
+		printf("facing south\n");
+		facing = 2;
+		//centerX = eyeX;
+		//centerY = eyeY - 0.25;
+
+		for (float i = 0.0001; i <= 0.25; i += 0.0001) {
+			centerX -= 0.0001;
+			centerY -= 0.0001;
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+				centerX, centerY, 0.5,	// Center
+				0.0, 0.0, 1.0);	// Up
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			drawMaze();
+			glFlush();
+		}
+
+		break;
+	case 2:
+		printf("facing west\n");
+		facing = 3;
+		//centerX = eyeX - 0.25;
+		//centerY = eyeY;
+
+		for (float i = 0.0001; i <= 0.25; i += 0.0001) {
+			centerX -= 0.0001;
+			centerY += 0.0001;
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+				centerX, centerY, 0.5,	// Center
+				0.0, 0.0, 1.0);	// Up
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			drawMaze();
+			glFlush();
+		}
+
+		break;
+	case 3:
+		printf("facing north\n");
+		facing = 0;
+		//centerX = eyeX;
+		//centerY = eyeY + 0.25;
+
+		for (float i = 0.0001; i <= 0.25; i += 0.0001) {
+			centerX += 0.0001;
+			centerY += 0.0001;
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+				centerX, centerY, 0.5,	// Center
+				0.0, 0.0, 1.0);	// Up
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			drawMaze();
+			glFlush();
+		}
+
+		break;
+	}
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+		centerX, centerY, 0.5,	// Center
+		0.0, 0.0, 1.0);	// Up
+	glutPostRedisplay();
+}
+
+void mazeKeys(unsigned char key, int x, int y) {
+	switch (key) {
+	case 'w':
+		forward();
+		break;
+	case 'a':
+		turnLeft();
+		break;
+	case 'd':
+		turnRight();
+		break;
+	}
+}
+
 void myinit() {
 	int size = fmax(mazeWidth, mazeHeight);
 
+	eyeX = 0.5;
+	eyeY = mazeHeight - 0.5;
+	eyeZ = 0.5;
+
+	locX = 0;
+	locY = 0;
+
+	centerX = eyeX;
+	centerY = eyeY - 0.25;
+
+	facing = 2;
+
+	glutKeyboardFunc(mazeKeys);
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(50.0, 1.0, -1.0, 1.0);
+	gluPerspective(50.0, 1.0, -1.0, 0.0);
 
 	glMatrixMode(GL_MODELVIEW);
-	gluLookAt(0.5, mazeHeight, 0.5,	// Eye
-				0.5, mazeHeight - 1, 0.5,	// Center
-				0.0, 0.0, 1.0);	// Up
+	glLoadIdentity();
+	gluLookAt(eyeX, eyeY, eyeZ,	// Eye
+		centerX, centerY, 0.5,	// Center
+		0.0, 0.0, 1.0);	// Up
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glColor3f(0.0, 0.0, 0.0);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_NORMALIZE);
 }
 
 int main(int argc, char **argv) {
