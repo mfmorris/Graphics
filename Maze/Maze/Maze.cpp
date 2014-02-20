@@ -554,6 +554,7 @@ void myinit() {
 	glColor3f(0.0, 0.0, 0.0);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glEnable(GL_DEPTH_TEST);
+	glDepthRange(0.0, 0.0);
 	glEnable(GL_NORMALIZE);
 }
 
