@@ -31,9 +31,14 @@
 //     this this "include" directory.
 //
 
-#include <gl/glew.h>
-#include <gl/freeglut.h>
-#include <gl/freeglut_ext.h>
+#ifdef __APPLE__  // include Mac OS X verions of headers
+#  include <OpenGL/OpenGL.h>
+#  include <GLUT/glut.h>
+#else // non-Mac OS X operating systems
+#  include <GL/glew.h>
+#  include <GL/freeglut.h>
+#  include <GL/freeglut_ext.h>
+#endif  // __APPLE__
 
 // Define a helpful macro for handling offsets into buffer objects
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))

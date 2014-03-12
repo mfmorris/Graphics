@@ -1,16 +1,9 @@
-//
-//  Display a rotating cube with lighting
-//
-//  Light and material properties are sent to the shader as uniform
-//    variables.  Vertex positions and normals are sent after each
-//    rotation.
-
 #include "Angel.h"
 
 typedef Angel::vec4  color4;
 typedef Angel::vec4  point4;
 
-const int NumVertices = 36; //(6 faces)(2 triangles/face)(3 vertices/triangle)
+const int NumVertices = 72; //(6 faces)(2 triangles/face)(3 vertices/triangle)(2 cubes)
 
 point4 points[NumVertices];
 vec3   normals[NumVertices];
@@ -27,6 +20,17 @@ point4 vertices[8] = {
     point4(  0.5, -0.5, -0.5, 1.0 )
 };
 
+point4 vertices2[8] = {
+	point4(-0.25, -0.25, 0.25, 1.0),
+	point4(-0.25, 0.25, 0.25, 1.0),
+	point4(0.25, 0.25, 0.25, 1.0),
+	point4(0.25, -0.25, 0.25, 1.0),
+	point4(-0.25, -0.25, -0.25, 1.0),
+	point4(-0.25, 0.25, -0.25, 1.0),
+	point4(0.25, 0.25, -0.25, 1.0),
+	point4(0.25, -0.25, -0.25, 1.0)
+};
+
 // Array of rotation angles (in degrees) for each coordinate axis
 enum { Xaxis = 0, Yaxis = 1, Zaxis = 2, NumAxes = 3 };
 int      Axis = Xaxis;
@@ -41,6 +45,11 @@ GLuint  ModelView, Projection;
 //    to the vertices
 
 int Index = 0;
+
+float lightX = 0;
+float lightY = 0;
+
+GLuint program;
 
 void
 quad( int a, int b, int c, int d )
@@ -60,6 +69,24 @@ quad( int a, int b, int c, int d )
     normals[Index] = normal; points[Index] = vertices[d]; Index++;
 }
 
+void
+quad2(int a, int b, int c, int d)
+{
+	// Initialize temporary vectors along the quad's edge to
+	//   compute its face normal 
+	vec4 u = vertices2[b] - vertices2[a];
+	vec4 v = vertices2[c] - vertices2[b];
+
+	vec3 normal = normalize(cross(u, v));
+
+	normals[Index] = normal; points[Index] = vertices2[a]; Index++;
+	normals[Index] = normal; points[Index] = vertices2[b]; Index++;
+	normals[Index] = normal; points[Index] = vertices2[c]; Index++;
+	normals[Index] = normal; points[Index] = vertices2[a]; Index++;
+	normals[Index] = normal; points[Index] = vertices2[c]; Index++;
+	normals[Index] = normal; points[Index] = vertices2[d]; Index++;
+}
+
 //----------------------------------------------------------------------------
 
 // generate 12 triangles: 36 vertices and 36 colors
@@ -74,22 +101,33 @@ colorcube()
     quad( 5, 4, 0, 1 );
 }
 
+void
+colorcube2()
+{
+	quad2(1, 0, 3, 2);
+	quad2(2, 3, 7, 6);
+	quad2(3, 0, 4, 7);
+	quad2(6, 5, 1, 2);
+	quad2(4, 5, 6, 7);
+	quad2(5, 4, 0, 1);
+}
+
 //----------------------------------------------------------------------------
 
 // OpenGL initialization
 void
 init()
 {
-    colorcube();
-
-    // Create a vertex array object
     GLuint vao;
     glGenVertexArrays( 1, &vao );
-    glBindVertexArray( vao );
 
-    // Create and initialize a buffer object
-    GLuint buffer;
-    glGenBuffers( 1, &buffer );
+	GLuint buffer;
+	glGenBuffers(1, &buffer);
+    
+	colorcube();
+	colorcube2();
+
+	glBindVertexArray( vao );
     glBindBuffer( GL_ARRAY_BUFFER, buffer );
     glBufferData( GL_ARRAY_BUFFER, sizeof(points) + sizeof(normals),
 		  NULL, GL_STATIC_DRAW );
@@ -97,56 +135,56 @@ init()
     glBufferSubData( GL_ARRAY_BUFFER, sizeof(points),
 		     sizeof(normals), normals );
 
-    // Load shaders and use the resulting shader program
-    GLuint program = InitShader( "vshader53.glsl", "fshader53.glsl" );
-    glUseProgram( program );
+	program = InitShader("vshader53.glsl", "fshader53.glsl");
+	glUseProgram(program);
 
-    // set up vertex arrays
-    GLuint vPosition = glGetAttribLocation( program, "vPosition" );
-    glEnableVertexAttribArray( vPosition );
-    glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(0) );
+	// set up vertex arrays
+	GLuint vPosition = glGetAttribLocation(program, "vPosition");
+	glEnableVertexAttribArray(vPosition);
+	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+		BUFFER_OFFSET(0));
 
-    GLuint vNormal = glGetAttribLocation( program, "vNormal" ); 
-    glEnableVertexAttribArray( vNormal );
-    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0,
-			   BUFFER_OFFSET(sizeof(points)) );
+	GLuint vNormal = glGetAttribLocation(program, "vNormal");
+	glEnableVertexAttribArray(vNormal);
+	glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0,
+		BUFFER_OFFSET(sizeof(points)));
 
-    // Initialize shader lighting parameters
-    point4 light_position( 0.0, 0.0, -1.0, 0.0 );
-    color4 light_ambient( 0.2, 0.2, 0.2, 1.0 );
-    color4 light_diffuse( 1.0, 1.0, 1.0, 1.0 );
-    color4 light_specular( 1.0, 1.0, 1.0, 1.0 );
+	// Initialize shader lighting parameters
+	point4 light_position(0.0, 0.0, 2.0, 0.0);
+	color4 light_ambient(0.2, 0.2, 0.2, 1.0);
+	color4 light_diffuse(1.0, 1.0, 1.0, 1.0);
+	color4 light_specular(1.0, 1.0, 1.0, 1.0);
 
-    color4 material_ambient( 1.0, 0.0, 1.0, 1.0 );
-    color4 material_diffuse( 1.0, 0.8, 0.0, 1.0 );
-    color4 material_specular( 1.0, 0.8, 0.0, 1.0 );
-    float  material_shininess = 100.0;
+	color4 material_ambient(0.0, 1.0, 0.0, 1.0);
+	color4 material_diffuse(0.0, 1.0, 0.8, 1.0);
+	color4 material_specular(0.0, 1.0, 0.8, 1.0);
+	float  material_shininess = 100.0;
 
-    color4 ambient_product = light_ambient * material_ambient;
-    color4 diffuse_product = light_diffuse * material_diffuse;
-    color4 specular_product = light_specular * material_specular;
+	color4 ambient_product = light_ambient * material_ambient;
+	color4 diffuse_product = light_diffuse * material_diffuse;
+	color4 specular_product = light_specular * material_specular;
 
-    glUniform4fv( glGetUniformLocation(program, "AmbientProduct"),
-		  1, ambient_product );
-    glUniform4fv( glGetUniformLocation(program, "DiffuseProduct"),
-		  1, diffuse_product );
-    glUniform4fv( glGetUniformLocation(program, "SpecularProduct"),
-		  1, specular_product );
-	
-    glUniform4fv( glGetUniformLocation(program, "LightPosition"),
-		  1, light_position );
+	glUniform4fv(glGetUniformLocation(program, "AmbientProduct"),
+		1, ambient_product);
+	glUniform4fv(glGetUniformLocation(program, "DiffuseProduct"),
+		1, diffuse_product);
+	glUniform4fv(glGetUniformLocation(program, "SpecularProduct"),
+		1, specular_product);
 
-    glUniform1f( glGetUniformLocation(program, "Shininess"),
-		 material_shininess );
-		 
-    // Retrieve transformation uniform variable locations
-    ModelView = glGetUniformLocation( program, "ModelView" );
-    Projection = glGetUniformLocation( program, "Projection" );
+	glUniform4fv(glGetUniformLocation(program, "LightPosition"),
+		1, light_position);
 
-	glEnable( GL_DEPTH_TEST  );
+	glUniform1f(glGetUniformLocation(program, "Shininess"),
+		material_shininess);
 
-    glShadeModel(GL_FLAT);
+	// Retrieve transformation uniform variable locations
+	ModelView = glGetUniformLocation(program, "ModelView");
+	Projection = glGetUniformLocation(program, "Projection");
+
+	glEnable(GL_DEPTH_TEST | GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA_SATURATE, GL_ONE);
+
+    glShadeModel(GL_SMOOTH);
 
     glClearColor( 1.0, 1.0, 1.0, 1.0 ); 
 }
@@ -158,7 +196,7 @@ display( void )
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //  Generate tha model-view matrixn
+    //  Generate the model-view matrix
 
     const vec3 viewer_pos( 0.0, 0.0, 2.0 );
     mat4  model_view = ( Translate( -viewer_pos ) *
@@ -168,7 +206,12 @@ display( void )
     
     glUniformMatrix4fv( ModelView, 1, GL_TRUE, model_view );
 
-    glDrawArrays( GL_TRIANGLES, 0, NumVertices );
+	point4 light_position(lightX, lightY, 2.0, 0.0);
+
+	glUniform4fv(glGetUniformLocation(program, "LightPosition"),
+		1, light_position);
+
+    glDrawArrays( GL_TRIANGLES, 0, NumVertices);
     glutSwapBuffers();
 }
 
@@ -178,12 +221,12 @@ void
 mouse( int button, int state, int x, int y )
 {
     if ( state == GLUT_DOWN ) {
-	switch( button ) {
-	    case GLUT_LEFT_BUTTON:    Axis = Xaxis;  break;
-	    case GLUT_MIDDLE_BUTTON:  Axis = Yaxis;  break;
-	    case GLUT_RIGHT_BUTTON:   Axis = Zaxis;  break;
-	}
-    }
+		switch( button ) {
+			case GLUT_LEFT_BUTTON:    Axis = Xaxis;  break;
+			case GLUT_MIDDLE_BUTTON:  Axis = Yaxis;  break;
+			case GLUT_RIGHT_BUTTON:   Axis = Zaxis;  break;
+		}
+	}	
 }
 
 //----------------------------------------------------------------------------
@@ -196,7 +239,7 @@ idle( void )
     if ( Theta[Axis] > 360.0 ) {
 	Theta[Axis] -= 360.0;
     }
-    
+
     glutPostRedisplay();
 }
 
@@ -211,6 +254,19 @@ keyboard( unsigned char key, int x, int y )
 	    exit( EXIT_SUCCESS );
 	    break;
     }
+}
+
+//----------------------------------------------------------------------------
+
+void
+move(int x, int y)
+{
+	lightX = x;
+	lightY = y;
+
+	printf("x: %f, y: %f\n", lightX, lightY);
+
+	glutPostRedisplay();
 }
 
 //----------------------------------------------------------------------------
@@ -238,16 +294,17 @@ main( int argc, char **argv )
     glutInitContextProfile( GLUT_CORE_PROFILE );
     glutCreateWindow( "Color Cube" );
 
-	//glewExperimental = GL_TRUE;
-    //glewInit();
+	glewExperimental = GL_TRUE;
+    glewInit();
 
     init();
 
-    glutDisplayFunc( display );
-    glutKeyboardFunc( keyboard );
-    glutReshapeFunc( reshape );
-    glutMouseFunc( mouse );
-    glutIdleFunc( idle );
+    glutDisplayFunc(display);
+    glutKeyboardFunc(keyboard);
+    glutReshapeFunc(reshape);
+    glutMouseFunc(mouse);
+    glutIdleFunc(idle);
+	glutPassiveMotionFunc(move);
 
     glutMainLoop();
     return 0;
