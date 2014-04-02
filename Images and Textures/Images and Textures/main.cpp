@@ -80,7 +80,6 @@ void threshold() {
 
 	for (int i = 0; i < size[1]; i++) {
 		for (int j = 0; j < size[0]; j++) {
-			printf("Value: %d\n", (int)equalized[i][j]);
 			if (equalized[i][j] < ((char)10)) {
 				thresholdVals[i][j] = 0;
 			} else {
@@ -91,18 +90,40 @@ void threshold() {
 	}
 }
 
+void cube() {
+
+}
+
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	//glWindowPos2f(0.0, 0.0);
+	cube();
 
-	glRasterPos2f(0.0, 0.8);
+	glFlush();
+}
+
+void displayOriginal(void) {
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glRasterPos2f(-1.0, -1.0);
 	glDrawPixels(size[0], size[1], GL_LUMINANCE, GL_UNSIGNED_BYTE, bitmap);
 
-	glRasterPos2f(0.0, 0.0);
+	glFlush();
+}
+
+void displayEqualized(void) {
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glRasterPos2f(-1.0, -1.0);
 	glDrawPixels(size[0], size[1], GL_LUMINANCE, GL_UNSIGNED_BYTE, equalBitmap);
 
-	glRasterPos2f(0.0, -0.8);
+	glFlush();
+}
+
+void displayThreshold(void) {
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glRasterPos2f(-1.0, -1.0);
 	glDrawPixels(size[0], size[1], GL_LUMINANCE, GL_UNSIGNED_BYTE, threshBitmap);
 
 	glFlush();
@@ -121,10 +142,27 @@ void main(int argc, char **argv) {
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	
+	glutInitWindowPosition(300, 0);
 	glutInitWindowSize(800, 800);
-	glutInitWindowPosition(0, 0);
-	glutCreateWindow("Matt's Images and Textures");
+	glutCreateWindow("Textured Image");
 	glutDisplayFunc(display);
+
+	glutInitWindowPosition(0, 0);
+	glutInitWindowSize(size[0], size[1]);
+	glutCreateWindow("Original Image");
+	glutDisplayFunc(displayOriginal);
+
+	glutInitWindowPosition(0, 200);
+	glutInitWindowSize(size[0], size[1]);
+	glutCreateWindow("Equalized Image");
+	glutDisplayFunc(displayEqualized);
+
+	glutInitWindowPosition(0, 400);
+	glutInitWindowSize(size[0], size[1]);
+	glutCreateWindow("Threshold Image");
+	glutDisplayFunc(displayThreshold);
+
 	init();
 	glutMainLoop();
 }
